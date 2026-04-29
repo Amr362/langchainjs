@@ -38,6 +38,8 @@ const model = new ChatGoogleGenerativeAI({
   model: "gemini-1.5-flash",
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
+  // Using v1 for better stability with free tier
+  apiVersion: "v1",
 });
 
 const taskers = ["tasker_1", "tasker_2"];
