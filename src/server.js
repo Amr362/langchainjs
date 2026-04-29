@@ -12,76 +12,68 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1) CORS configuration - Allow all origins for Railway deployment
+// 1) CORS configuration
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// 2) Body parsing middleware
 app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
 const tasks = [];
 
-// 3) Logging middleware
+// Logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// Serve static files from public directory
 app.use(express.static(path.join(__dirname, "../public")));
 
-// GET / - Serve the Chat UI
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// 4) Healthcheck endpoint for Railway
+// Healthcheck endpoint
 app.get("/setup/healthz", (req, res) => {
   res.status(200).send("ok");
 });
 
-// 5) Main API Endpoint: POST /task/run
+// Main API Endpoint
 app.post("/task/run", async (req, res) => {
   const { task } = req.body;
 
-  // 6) Error protection: Check if task exists
   if (!task || typeof task !== 'string' || task.trim() === '') {
-    console.error(">>> Error: Task description is required");
     return res.status(400).json({ 
       success: false,
       error: "task is required" 
     });
   }
 
-  // 7) Check for OpenAI API Key
-  if (!process.env.OPENAI_API_KEY) {
-    console.error(">>> Error: OPENAI_API_KEY is missing");
-    return res.status(500).json({
+  // Check for OpenAI API Key
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_api_key_here') {
+    console.error(">>> Error: OPENAI_API_KEY is not set or invalid");
+    return res.status(401).json({
       success: false,
-      error: "OpenAI API Key is not configured on the server"
+      error: "OpenAI API Key is missing or invalid. Please set OPENAI_API_KEY in Railway environment variables."
     });
   }
 
-  console.log(`>>> Received new task: "${task}"`);
+  console.log(`>>> Processing task: "${task}"`);
 
   try {
     const initialState = {
       task: task,
-      logs: [`Received task at ${new Date().toISOString()}`]
+      logs: [`Started at ${new Date().toISOString()}`]
     };
 
-    // Invoke LangGraph agent
     const finalState = await agent.invoke(initialState);
 
-    // 8) Unified API contract response
     const result = {
       success: true,
       output: finalState.result || "No output generated",
-      // Including extra details for UI compatibility if needed
       analysis: finalState.analysis,
       assignedTo: finalState.assignedTo,
       qa: finalState.qa,
@@ -89,30 +81,34 @@ app.post("/task/run", async (req, res) => {
       timestamp: new Date().toISOString()
     };
 
-    tasks.push({
-      id: tasks.length + 1,
-      ...result
-    });
+    tasks.push({ id: tasks.length + 1, ...result });
     
     console.log(">>> Task completed successfully");
     res.json(result);
   } catch (error) {
-    console.error(">>> Error running agent:", error);
+    console.error(">>> Agent Execution Error:", error.message);
+    
+    // Handle specific authentication errors
+    if (error.message.includes("401") || error.message.toLowerCase().includes("authentication")) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication failed with OpenAI. Please check your API Key.",
+        details: error.message
+      });
+    }
+
     res.status(500).json({ 
       success: false, 
-      error: "Internal Server Error", 
+      error: "AI Agent failed to process the task", 
       details: error.message 
     });
   }
 });
 
-// GET /tasks - List all tasks
 app.get("/tasks", (req, res) => {
   res.json(tasks);
 });
 
-// 9) Binding to 0.0.0.0 and process.env.PORT for Railway
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on http://0.0.0.0:${PORT}`);
-  console.log(`Healthcheck available at http://0.0.0.0:${PORT}/setup/healthz`);
 });
