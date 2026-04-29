@@ -62,6 +62,7 @@ app.post("/task/run", async (req, res) => {
   }
 
   console.log(`>>> Processing task with Gemini: "${task}"`);
+  console.log(">>> GEMINI_API_KEY present:", !!process.env.GEMINI_API_KEY);
 
   try {
     const initialState = {
@@ -86,7 +87,8 @@ app.post("/task/run", async (req, res) => {
     console.log(">>> Task completed successfully via Gemini");
     res.json(result);
   } catch (error) {
-    console.error(">>> Agent Execution Error:", error.message);
+    console.error(">>> Agent Execution Error Full:", error);
+    console.error(">>> Agent Execution Error Message:", error.message);
     
     let statusCode = 500;
     let errorMessage = "AI Agent failed to process the task";

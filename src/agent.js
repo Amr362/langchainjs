@@ -46,10 +46,12 @@ const taskers = ["tasker_1", "tasker_2"];
 const analyzeTask = async (state) => {
   console.log("--- ANALYZING TASK ---");
   try {
+    console.log(">>> INVOKING GEMINI FOR ANALYSIS...");
     const response = await model.invoke([
       new SystemMessage("You are a task analyzer. Categorize the task and identify key requirements."),
       new HumanMessage(state.task),
     ]);
+    console.log(">>> GEMINI RESPONSE RECEIVED");
     return { 
       analysis: response.content,
       logs: ["Task analyzed successfully"]
