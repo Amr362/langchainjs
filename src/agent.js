@@ -38,8 +38,7 @@ const model = new ChatGoogleGenerativeAI({
   model: "gemini-1.5-flash",
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
-  // Using v1 for better stability with free tier
-  apiVersion: "v1",
+
 });
 
 const taskers = ["tasker_1", "tasker_2"];
@@ -50,8 +49,7 @@ const analyzeTask = async (state) => {
   try {
     console.log(">>> INVOKING GEMINI FOR ANALYSIS...");
     const response = await model.invoke([
-      new SystemMessage("You are a task analyzer. Categorize the task and identify key requirements."),
-      new HumanMessage(state.task),
+      new HumanMessage(`System: You are a task analyzer. Categorize the task and identify key requirements.\n\nUser Task: ${state.task}`),
     ]);
     console.log(">>> GEMINI RESPONSE RECEIVED");
     return { 
@@ -82,8 +80,7 @@ const executeTask = async (state) => {
   console.log("--- EXECUTING TASK ---");
   try {
     const response = await model.invoke([
-      new SystemMessage(`You are ${state.assignedTo}. Execute the following task based on the analysis.`),
-      new HumanMessage(`Task: ${state.task}\nAnalysis: ${state.analysis}`),
+      new HumanMessage(`System: You are ${state.assignedTo}. Execute the following task based on the analysis.\n\nTask: ${state.task}\nAnalysis: ${state.analysis}`),
     ]);
     return { 
       result: response.content,
@@ -100,8 +97,7 @@ const reviewTask = async (state) => {
   console.log("--- REVIEWING TASK (QA) ---");
   try {
     const response = await model.invoke([
-      new SystemMessage("You are a QA specialist. Review the execution result against the original task and analysis. Provide a score out of 10 and feedback."),
-      new HumanMessage(`Original Task: ${state.task}\nExecution Result: ${state.result}`),
+      new HumanMessage(`System: You are a QA specialist. Review the execution result against the original task and analysis. Provide a score out of 10 and feedback.\n\nOriginal Task: ${state.task}\nExecution Result: ${state.result}`),
     ]);
     return { 
       qa: response.content,
