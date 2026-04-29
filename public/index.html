@@ -93,6 +93,7 @@
       justify-content: center;
       height: 100%;
       text-align: center;
+      margin-top: 4rem;
     }
 
     .empty-state-icon {
@@ -113,7 +114,7 @@
 
     /* Messages */
     .message {
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       display: flex;
       animation: slideIn 0.4s ease-out;
     }
@@ -127,11 +128,11 @@
     }
 
     .message-bubble {
-      max-width: 28rem;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      line-height: 1.5;
+      max-width: 85%;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
       word-wrap: break-word;
       white-space: pre-wrap;
     }
@@ -139,7 +140,8 @@
     .message.user .message-bubble {
       background: linear-gradient(to right, #06B6D4, #A855F7);
       color: white;
-      border-radius: 0.5rem 0.5rem 0 0.5rem;
+      border-radius: 1rem 1rem 0 1rem;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
     }
 
     .message.assistant .message-bubble {
@@ -147,19 +149,19 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--border);
-      border-radius: 0.5rem 0.5rem 0.5rem 0;
+      border-radius: 1rem 1rem 1rem 0;
       color: var(--foreground);
     }
 
     .loading {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
 
     .spinner {
-      width: 1rem;
-      height: 1rem;
+      width: 1.25rem;
+      height: 1.25rem;
       border: 2px solid rgba(255, 255, 255, 0.2);
       border-top-color: var(--primary);
       border-radius: 50%;
@@ -187,7 +189,7 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-top: 1px solid var(--border);
-      padding: 1rem;
+      padding: 1.25rem;
       flex-shrink: 0;
     }
 
@@ -200,12 +202,17 @@
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(6, 182, 212, 0.2);
-      padding: 1rem;
-      border-radius: 0.75rem;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
       display: flex;
       gap: 0.75rem;
       align-items: flex-end;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--primary);
     }
 
     textarea {
@@ -215,10 +222,11 @@
       border: none;
       outline: none;
       font-family: 'Outfit', sans-serif;
-      font-size: 0.875rem;
+      font-size: 1rem;
       resize: none;
-      max-height: 120px;
-      padding: 0;
+      max-height: 150px;
+      padding: 0.5rem 0;
+      line-height: 1.5;
     }
 
     textarea::placeholder {
@@ -226,8 +234,8 @@
     }
 
     .send-btn {
-      padding: 0.5rem;
-      border-radius: 0.5rem;
+      padding: 0.6rem;
+      border-radius: 0.75rem;
       background: linear-gradient(to right, #06B6D4, #A855F7);
       color: white;
       border: none;
@@ -237,6 +245,7 @@
       justify-content: center;
       transition: all 0.3s ease;
       flex-shrink: 0;
+      margin-bottom: 0.25rem;
     }
 
     .send-btn:hover:not(:disabled) {
@@ -250,23 +259,30 @@
     }
 
     .send-btn svg {
-      width: 1.25rem;
-      height: 1.25rem;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .error-container {
+      margin-top: 0.75rem;
+      display: none;
     }
 
     .error {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid rgba(239, 68, 68, 0.2);
       color: #FCA5A5;
       font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     /* Scrollbar */
     .messages-container::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
 
     .messages-container::-webkit-scrollbar-track {
@@ -274,12 +290,12 @@
     }
 
     .messages-container::-webkit-scrollbar-thumb {
-      background: rgba(6, 182, 212, 0.3);
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
     }
 
     .messages-container::-webkit-scrollbar-thumb:hover {
-      background: rgba(6, 182, 212, 0.5);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     @media (max-width: 640px) {
@@ -288,15 +304,11 @@
       }
 
       .message-bubble {
-        max-width: 100%;
+        max-width: 95%;
       }
 
       .messages-container {
-        padding: 1rem 0.5rem;
-      }
-
-      .input-container {
-        padding: 0.75rem 0.5rem;
+        padding: 1rem 0.75rem;
       }
     }
   </style>
@@ -307,7 +319,7 @@
     <div class="header">
       <div class="header-content">
         <h1>AI Agent Chat</h1>
-        <p>يتولى المعالجة AI أرسل مهمتك واترك</p>
+        <p>أرسل مهمتك وسيتولى الـ AI Agent معالجتها بالكامل</p>
       </div>
     </div>
 
@@ -315,9 +327,9 @@
     <div class="messages-container">
       <div class="messages-content" id="messagesContent">
         <div class="empty-state">
-          <div class="empty-state-icon">💬</div>
-          <h2>ابدأ محادثتك</h2>
-          <p>اكتب مهمتك أدناه وسيقوم الـ AI Agent بتحليلها وتنفيذها ومراجعتها</p>
+          <div class="empty-state-icon">🤖</div>
+          <h2>مرحباً بك!</h2>
+          <p>اكتب أي مهمة تريد تنفيذها (مثلاً: "حلل سوق العملات الرقمية" أو "اكتب كود بايثون") وسيقوم العميل الذكي بالعمل عليها.</p>
         </div>
       </div>
     </div>
@@ -333,7 +345,14 @@
             </svg>
           </button>
         </div>
-        <div id="errorMsg"></div>
+        <div id="errorContainer" class="error-container">
+          <div class="error">
+            <svg style="width:1.25rem;height:1.25rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="errorMsg"></span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -342,6 +361,7 @@
     const taskInput = document.getElementById('taskInput');
     const sendBtn = document.getElementById('sendBtn');
     const messagesContent = document.getElementById('messagesContent');
+    const errorContainer = document.getElementById('errorContainer');
     const errorMsg = document.getElementById('errorMsg');
     const messagesContainer = document.querySelector('.messages-container');
 
@@ -350,7 +370,7 @@
     // Auto-resize textarea
     taskInput.addEventListener('input', () => {
       taskInput.style.height = 'auto';
-      taskInput.style.height = Math.min(taskInput.scrollHeight, 120) + 'px';
+      taskInput.style.height = Math.min(taskInput.scrollHeight, 150) + 'px';
     });
 
     // Send on Enter (but not Shift+Enter)
@@ -376,12 +396,12 @@
       addMessage('user', task);
       taskInput.value = '';
       taskInput.style.height = 'auto';
-      errorMsg.innerHTML = '';
+      hideError();
       isLoading = true;
       sendBtn.disabled = true;
 
       // Add loading indicator
-      addMessage('assistant', null, true);
+      const loadingId = addMessage('assistant', null, true);
 
       try {
         const response = await fetch('/task/run', {
@@ -390,26 +410,27 @@
           body: JSON.stringify({ task })
         });
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.statusText}`);
-        }
-
         const data = await response.json();
 
         // Remove loading message
-        const lastMessage = messagesContent.lastChild;
-        if (lastMessage) lastMessage.remove();
+        removeMessage(loadingId);
+
+        if (!response.ok || data.success === false) {
+          throw new Error(data.error || `API Error: ${response.statusText}`);
+        }
 
         // Format response
         const responseText = `
+### ✅ تم التنفيذ بنجاح
+
 **التحليل:**
 ${data.analysis || 'لم يتم توفير تحليل'}
 
 **المسؤول:**
 ${data.assignedTo || 'لم يتم تعيين'}
 
-**النتيجة:**
-${data.result || 'لم يتم توفير نتيجة'}
+**النتيجة النهائية:**
+${data.output || data.result || 'لم يتم توفير نتيجة'}
 
 **مراجعة الجودة:**
 ${data.qa || 'لم يتم توفير مراجعة'}
@@ -417,13 +438,12 @@ ${data.qa || 'لم يتم توفير مراجعة'}
 
         addMessage('assistant', responseText);
       } catch (error) {
-        // Remove loading message
-        const lastMessage = messagesContent.lastChild;
-        if (lastMessage) lastMessage.remove();
+        // Remove loading message if still there
+        removeMessage(loadingId);
 
-        const errorText = error instanceof Error ? error.message : 'حدث خطأ غير متوقع';
-        addMessage('assistant', `❌ خطأ: ${errorText}`);
-        errorMsg.innerHTML = `<div class="error">${errorText}</div>`;
+        const errorText = error.message || 'حدث خطأ غير متوقع في الاتصال بالسيرفر';
+        addMessage('assistant', `❌ **خطأ:** ${errorText}`);
+        showError(errorText);
       } finally {
         isLoading = false;
         sendBtn.disabled = false;
@@ -432,25 +452,54 @@ ${data.qa || 'لم يتم توفير مراجعة'}
     }
 
     function addMessage(role, content, isLoading = false) {
+      const id = 'msg-' + Date.now();
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${role}`;
+      messageDiv.id = id;
 
       const bubble = document.createElement('div');
       bubble.className = 'message-bubble';
 
       if (isLoading) {
-        bubble.innerHTML = '<div class="loading"><div class="spinner"></div><span>جاري المعالجة...</span></div>';
+        bubble.innerHTML = '<div class="loading"><div class="spinner"></div><span>جاري المعالجة بواسطة AI Agent...</span></div>';
       } else {
-        bubble.textContent = content;
+        // Simple markdown-like formatting for bold and headers
+        let formattedContent = content
+          .replace(/### (.*)/g, '<h3 style="margin-bottom:0.5rem;color:var(--primary)">$1</h3>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--primary)">$1</strong>');
+        
+        bubble.innerHTML = formattedContent;
       }
 
       messageDiv.appendChild(bubble);
       messagesContent.appendChild(messageDiv);
 
       // Auto scroll
+      scrollToBottom();
+      return id;
+    }
+
+    function removeMessage(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function scrollToBottom() {
       setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 0);
+        messagesContainer.scrollTo({
+          top: messagesContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 50);
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorContainer.style.display = 'block';
+    }
+
+    function hideError() {
+      errorContainer.style.display = 'none';
     }
   </script>
 </body>

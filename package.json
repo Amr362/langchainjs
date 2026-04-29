@@ -9,10 +9,11 @@
     "dev": "node src/server.js"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.30",
     "@langchain/langgraph": "^0.2.45",
     "@langchain/openai": "^0.3.17",
-    "@langchain/core": "^0.3.30",
-    "express": "^4.21.2",
-    "dotenv": "^16.4.7"
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
   }
 }

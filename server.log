@@ -1,0 +1,17 @@
+
+> ai-agent-platform@1.0.0 start
+> node src/server.js
+
+(node:2280) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Server is running on http://0.0.0.0:8080
+Healthcheck available at http://0.0.0.0:8080/setup/healthz
+[2026-04-29T22:16:18.832Z] POST /
+[2026-04-29T22:16:21.986Z] GET /setup/healthz
+[2026-04-29T22:16:22.817Z] POST /
+[2026-04-29T22:16:24.497Z] POST /task/run
+>>> Error: Task description is required
+[2026-04-29T22:16:24.818Z] POST /
+[2026-04-29T22:16:26.818Z] POST /
+[2026-04-29T22:16:28.817Z] POST /
+[2026-04-29T22:16:34.819Z] POST /
