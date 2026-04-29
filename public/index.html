@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #06B6D4;
+      --primary-dark: #0891B2;
+      --secondary: #A855F7;
+      --background: #0F172A;
+      --card-bg: rgba(15, 23, 42, 0.8);
+      --foreground: #F8FAFC;
+      --muted: #94A3B8;
+      --border: rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      flex-shrink: 0;
+    }
+
+    .header-content {
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #06B6D4 0%, #A855F7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    /* Messages Container */
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 1rem;
+    }
+
+    .messages-content {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      font-size: 3.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      color: var(--muted);
+      max-width: 28rem;
+    }
+
+    /* Messages */
+    .message {
+      margin-bottom: 1rem;
+      display: flex;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.assistant {
+      justify-content: flex-start;
+    }
+
+    .message-bubble {
+      max-width: 28rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(to right, #06B6D4, #A855F7);
+      color: white;
+      border-radius: 0.5rem 0.5rem 0 0.5rem;
+    }
+
+    .message.assistant .message-bubble {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem 0.5rem 0.5rem 0;
+      color: var(--foreground);
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spinner {
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Input Area */
+    .input-container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 1rem;
+      flex-shrink: 0;
+    }
+
+    .input-content {
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .input-wrapper {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: var(--foreground);
+      border: none;
+      outline: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      resize: none;
+      max-height: 120px;
+      padding: 0;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .send-btn {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(to right, #06B6D4, #A855F7);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+      transform: scale(1.05);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .error {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #FCA5A5;
+      font-size: 0.875rem;
+    }
+
+    /* Scrollbar */
+    .messages-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.3);
+      border-radius: 4px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(6, 182, 212, 0.5);
+    }
+
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .message-bubble {
+        max-width: 100%;
+      }
+
+      .messages-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .input-container {
+        padding: 0.75rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <h1>AI Agent Chat</h1>
+        <p>يتولى المعالجة AI أرسل مهمتك واترك</p>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container">
+      <div class="messages-content" id="messagesContent">
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <h2>ابدأ محادثتك</h2>
+          <p>اكتب مهمتك أدناه وسيقوم الـ AI Agent بتحليلها وتنفيذها ومراجعتها</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-container">
+      <div class="input-content">
+        <div class="input-wrapper">
+          <textarea id="taskInput" placeholder="اكتب مهمتك هنا... (Shift+Enter للسطر الجديد)" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn" title="إرسال (Enter)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+        <div id="errorMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const taskInput = document.getElementById('taskInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const messagesContent = document.getElementById('messagesContent');
+    const errorMsg = document.getElementById('errorMsg');
+    const messagesContainer = document.querySelector('.messages-container');
+
+    let isLoading = false;
+
+    // Auto-resize textarea
+    taskInput.addEventListener('input', () => {
+      taskInput.style.height = 'auto';
+      taskInput.style.height = Math.min(taskInput.scrollHeight, 120) + 'px';
+    });
+
+    // Send on Enter (but not Shift+Enter)
+    taskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    async function sendMessage() {
+      const task = taskInput.value.trim();
+      if (!task || isLoading) return;
+
+      // Clear empty state
+      if (messagesContent.querySelector('.empty-state')) {
+        messagesContent.innerHTML = '';
+      }
+
+      // Add user message
+      addMessage('user', task);
+      taskInput.value = '';
+      taskInput.style.height = 'auto';
+      errorMsg.innerHTML = '';
+      isLoading = true;
+      sendBtn.disabled = true;
+
+      // Add loading indicator
+      addMessage('assistant', null, true);
+
+      try {
+        const response = await fetch('/task/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Remove loading message
+        const lastMessage = messagesContent.lastChild;
+        if (lastMessage) lastMessage.remove();
+
+        // Format response
+        const responseText = `
+**التحليل:**
+${data.analysis || 'لم يتم توفير تحليل'}
+
+**المسؤول:**
+${data.assignedTo || 'لم يتم تعيين'}
+
+**النتيجة:**
+${data.result || 'لم يتم توفير نتيجة'}
+
+**مراجعة الجودة:**
+${data.qa || 'لم يتم توفير مراجعة'}
+        `.trim();
+
+        addMessage('assistant', responseText);
+      } catch (error) {
+        // Remove loading message
+        const lastMessage = messagesContent.lastChild;
+        if (lastMessage) lastMessage.remove();
+
+        const errorText = error instanceof Error ? error.message : 'حدث خطأ غير متوقع';
+        addMessage('assistant', `❌ خطأ: ${errorText}`);
+        errorMsg.innerHTML = `<div class="error">${errorText}</div>`;
+      } finally {
+        isLoading = false;
+        sendBtn.disabled = false;
+        taskInput.focus();
+      }
+    }
+
+    function addMessage(role, content, isLoading = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+
+      if (isLoading) {
+        bubble.innerHTML = '<div class="loading"><div class="spinner"></div><span>جاري المعالجة...</span></div>';
+      } else {
+        bubble.textContent = content;
+      }
+
+      messageDiv.appendChild(bubble);
+      messagesContent.appendChild(messageDiv);
+
+      // Auto scroll
+      setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 0);
+    }
+  </script>
+</body>
+</html>
