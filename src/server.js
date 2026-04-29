@@ -53,11 +53,11 @@ app.post("/task/run", async (req, res) => {
   }
 
   // Check for OpenAI API Key
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_api_key_here') {
-    console.error(">>> Error: OPENAI_API_KEY is not set or invalid");
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_api_key_here' || process.env.OPENAI_API_KEY === 'dummy_key') {
+    console.error(">>> Error: OPENAI_API_KEY is missing or placeholder");
     return res.status(401).json({
       success: false,
-      error: "OpenAI API Key is missing or invalid. Please set OPENAI_API_KEY in Railway environment variables."
+      error: "OpenAI API Key is missing. Please set a valid OPENAI_API_KEY in Railway environment variables."
     });
   }
 
@@ -66,7 +66,7 @@ app.post("/task/run", async (req, res) => {
   try {
     const initialState = {
       task: task,
-      logs: [`Started at ${new Date().toISOString()}`]
+      logs: []
     };
 
     const finalState = await agent.invoke(initialState);
@@ -88,18 +88,17 @@ app.post("/task/run", async (req, res) => {
   } catch (error) {
     console.error(">>> Agent Execution Error:", error.message);
     
-    // Handle specific authentication errors
-    if (error.message.includes("401") || error.message.toLowerCase().includes("authentication")) {
-      return res.status(401).json({
-        success: false,
-        error: "Authentication failed with OpenAI. Please check your API Key.",
-        details: error.message
-      });
+    let statusCode = 500;
+    let errorMessage = "AI Agent failed to process the task";
+    
+    if (error.message.includes("OPENAI_AUTH_ERROR") || error.message.includes("401")) {
+      statusCode = 401;
+      errorMessage = "Authentication failed with OpenAI. Please check your API Key in Railway.";
     }
 
-    res.status(500).json({ 
+    res.status(statusCode).json({ 
       success: false, 
-      error: "AI Agent failed to process the task", 
+      error: errorMessage, 
       details: error.message 
     });
   }

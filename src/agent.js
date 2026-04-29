@@ -5,27 +5,41 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Define the state of our graph
+// Define the state of our graph with proper reducers
 const AgentState = Annotation.Root({
-  task: Annotation(),
-  analysis: Annotation(),
-  assignedTo: Annotation(),
-  result: Annotation(),
-  qa: Annotation(),
+  task: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => "",
+  }),
+  analysis: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => "",
+  }),
+  assignedTo: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => "",
+  }),
+  result: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => "",
+  }),
+  qa: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => "",
+  }),
   logs: Annotation({
     reducer: (x, y) => x.concat(y),
     default: () => [],
   }),
 });
 
-// Initialize model with configuration from environment
+// Initialize model
 const modelConfig = {
   modelName: process.env.OPENAI_MODEL || "gpt-4o-mini",
   temperature: 0,
   openAIApiKey: process.env.OPENAI_API_KEY,
 };
 
-// Support for custom base URL (useful for some proxy services or alternative providers)
 if (process.env.OPENAI_API_BASE) {
   modelConfig.configuration = {
     baseURL: process.env.OPENAI_API_BASE,
@@ -50,7 +64,11 @@ const analyzeTask = async (state) => {
     };
   } catch (error) {
     console.error("Error in analyzeTask:", error.message);
-    throw new Error(`Analysis failed: ${error.message}`);
+    // If it's an auth error, we want to propagate it clearly
+    if (error.message.includes("401") || error.message.includes("auth")) {
+      throw new Error(`OPENAI_AUTH_ERROR: ${error.message}`);
+    }
+    throw error;
   }
 };
 
@@ -78,7 +96,7 @@ const executeTask = async (state) => {
     };
   } catch (error) {
     console.error("Error in executeTask:", error.message);
-    throw new Error(`Execution failed: ${error.message}`);
+    throw error;
   }
 };
 
@@ -96,7 +114,7 @@ const reviewTask = async (state) => {
     };
   } catch (error) {
     console.error("Error in reviewTask:", error.message);
-    throw new Error(`QA Review failed: ${error.message}`);
+    throw error;
   }
 };
 
