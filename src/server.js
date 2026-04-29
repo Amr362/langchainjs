@@ -52,16 +52,16 @@ app.post("/task/run", async (req, res) => {
     });
   }
 
-  // Check for OpenAI API Key
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_api_key_here' || process.env.OPENAI_API_KEY === 'dummy_key') {
-    console.error(">>> Error: OPENAI_API_KEY is missing or placeholder");
+  // Check for Gemini API Key (Replaced OpenAI check)
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_api_key_here' || process.env.GEMINI_API_KEY === 'dummy_key') {
+    console.error(">>> Error: GEMINI_API_KEY is missing or placeholder");
     return res.status(401).json({
       success: false,
-      error: "OpenAI API Key is missing. Please set a valid OPENAI_API_KEY in Railway environment variables."
+      error: "Gemini API Key is missing. Please set a valid GEMINI_API_KEY in Railway environment variables."
     });
   }
 
-  console.log(`>>> Processing task: "${task}"`);
+  console.log(`>>> Processing task with Gemini: "${task}"`);
 
   try {
     const initialState = {
@@ -83,7 +83,7 @@ app.post("/task/run", async (req, res) => {
 
     tasks.push({ id: tasks.length + 1, ...result });
     
-    console.log(">>> Task completed successfully");
+    console.log(">>> Task completed successfully via Gemini");
     res.json(result);
   } catch (error) {
     console.error(">>> Agent Execution Error:", error.message);
@@ -91,15 +91,16 @@ app.post("/task/run", async (req, res) => {
     let statusCode = 500;
     let errorMessage = "AI Agent failed to process the task";
     
-    if (error.message.includes("OPENAI_AUTH_ERROR") || error.message.includes("401")) {
+    if (error.message.includes("GEMINI_AUTH_ERROR") || error.message.includes("401") || error.message.includes("API_KEY_INVALID")) {
       statusCode = 401;
-      errorMessage = "Authentication failed with OpenAI. Please check your API Key in Railway.";
+      errorMessage = "Authentication failed with Gemini. Please check your API Key in Railway.";
     }
 
     res.status(statusCode).json({ 
       success: false, 
       error: errorMessage, 
-      details: error.message 
+      details: error.message,
+      output: "I'm sorry, I encountered an error while processing your request. Please try again later."
     });
   }
 });

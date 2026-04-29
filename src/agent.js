@@ -1,5 +1,5 @@
 import { StateGraph, Annotation } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import dotenv from "dotenv";
 
@@ -33,20 +33,12 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// Initialize model
-const modelConfig = {
-  modelName: process.env.OPENAI_MODEL || "gpt-4o-mini",
-  temperature: 0,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-};
-
-if (process.env.OPENAI_API_BASE) {
-  modelConfig.configuration = {
-    baseURL: process.env.OPENAI_API_BASE,
-  };
-}
-
-const model = new ChatOpenAI(modelConfig);
+// Initialize Gemini model
+const model = new ChatGoogleGenerativeAI({
+  model: "gemini-1.5-flash",
+  maxOutputTokens: 2048,
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 const taskers = ["tasker_1", "tasker_2"];
 
@@ -64,9 +56,8 @@ const analyzeTask = async (state) => {
     };
   } catch (error) {
     console.error("Error in analyzeTask:", error.message);
-    // If it's an auth error, we want to propagate it clearly
-    if (error.message.includes("401") || error.message.includes("auth")) {
-      throw new Error(`OPENAI_AUTH_ERROR: ${error.message}`);
+    if (error.message.includes("401") || error.message.includes("API_KEY_INVALID") || error.message.includes("auth")) {
+      throw new Error(`GEMINI_AUTH_ERROR: ${error.message}`);
     }
     throw error;
   }

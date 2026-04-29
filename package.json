@@ -9,9 +9,10 @@
     "dev": "node src/server.js"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.30",
-    "@langchain/langgraph": "^0.2.45",
-    "@langchain/openai": "^0.3.17",
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^0.3.80",
+    "@langchain/google-genai": "^2.1.29",
+    "@langchain/langgraph": "^0.2.74",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
