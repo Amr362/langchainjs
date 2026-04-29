@@ -35,10 +35,10 @@ const AgentState = Annotation.Root({
 
 // Initialize Gemini model
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash",
+  model: "gemini-1.5-flash-latest",
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
-
+  apiVersion: "v1",
 });
 
 const taskers = ["tasker_1", "tasker_2"];

@@ -10,7 +10,7 @@ class AIProvider {
       console.warn("GEMINI_API_KEY is not set in environment variables.");
     }
     this.genAI = new GoogleGenerativeAI(apiKey || "dummy_key");
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }, { apiVersion: "v1" });
   }
 
   async generateResponse(task) {
