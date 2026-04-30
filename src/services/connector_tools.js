@@ -19,9 +19,16 @@ if (!fs.existsSync(CONNECTORS_FILE)) {
 
 // 1. أداة إضافة موصل جديد
 export const addConnectorTool = tool(
-  async ({ name, type, config }) => {
+  async ({ name, type, config_json }) => {
     try {
       const data = JSON.parse(fs.readFileSync(CONNECTORS_FILE, "utf-8"));
+      let config = {};
+      try {
+        config = typeof config_json === 'string' ? JSON.parse(config_json) : config_json;
+      } catch (e) {
+        return "خطأ: تنسيق الإعدادات (config_json) يجب أن يكون JSON صالحاً.";
+      }
+
       const newConnector = {
         id: Date.now().toString(),
         name,
@@ -43,7 +50,7 @@ export const addConnectorTool = tool(
     schema: z.object({
       name: z.string().describe("اسم الموصل"),
       type: z.string().describe("نوع الموصل (مثلاً: github, custom_api, slack)"),
-      config: z.record(z.any()).describe("إعدادات الموصل (مثل API Keys, URLs)"),
+      config_json: z.string().describe("إعدادات الموصل بصيغة JSON string (مثل API Keys, URLs)"),
     }),
   }
 );
@@ -68,14 +75,22 @@ export const listConnectorsTool = tool(
 
 // 3. أداة استدعاء موصل (محاكاة لربط التطبيقات)
 export const invokeConnectorTool = tool(
-  async ({ connectorId, action, params }) => {
+  async ({ connectorId, action, params_json }) => {
     try {
       const data = JSON.parse(fs.readFileSync(CONNECTORS_FILE, "utf-8"));
       const connector = data.connectors.find(c => c.id === connectorId);
       if (!connector) return `خطأ: الموصل ذو المعرف ${connectorId} غير موجود.`;
       
+      let params = {};
+      if (params_json) {
+        try {
+          params = typeof params_json === 'string' ? JSON.parse(params_json) : params_json;
+        } catch (e) {
+          return "خطأ: تنسيق المعاملات (params_json) يجب أن يكون JSON صالحاً.";
+        }
+      }
+
       // هنا يتم تنفيذ المنطق الفعلي للربط بناءً على النوع
-      // حالياً سنقوم بمحاكاة التنفيذ
       return `تم تنفيذ الإجراء "${action}" عبر الموصل "${connector.name}" بنجاح. المعاملات: ${JSON.stringify(params)}`;
     } catch (error) {
       return `خطأ في استدعاء الموصل: ${error.message}`;
@@ -87,7 +102,7 @@ export const invokeConnectorTool = tool(
     schema: z.object({
       connectorId: z.string().describe("معرف الموصل"),
       action: z.string().describe("الإجراء المراد تنفيذه"),
-      params: z.record(z.any()).optional().describe("المعاملات الإضافية للإجراء"),
+      params_json: z.string().optional().describe("المعاملات الإضافية للإجراء بصيغة JSON string"),
     }),
   }
 );

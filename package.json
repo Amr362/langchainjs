@@ -14,6 +14,7 @@
     "@langchain/core": "^1.1.42",
     "@langchain/google-genai": "^2.1.29",
     "@langchain/langgraph": "^1.2.9",
+    "@langchain/openai": "^1.4.5",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "duck-duck-scrape": "^2.2.7",
