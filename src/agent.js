@@ -1,4 +1,4 @@
-import { StateGraph, Annotation, END, START } from "@langchain/langgraph";
+import { StateGraph, Annotation, END, START, MemorySaver } from "@langchain/langgraph";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
@@ -45,6 +45,9 @@ const callModel = async (state) => {
       أجب دائماً باللغة العربية بشكل احترافي.`),
       new HumanMessage(task)
     ];
+  } else if (task) {
+    // إذا كان هناك مهمة جديدة في محادثة مستمرة، نضيفها كرسالة إنسان
+    inputMessages = [...messages, new HumanMessage(task)];
   }
 
   const response = await model.invoke(inputMessages);
@@ -72,6 +75,9 @@ const shouldContinue = (state) => {
   return END;
 };
 
+// تهيئة الذاكرة (Checkpointer)
+const checkpointer = new MemorySaver();
+
 // بناء الرسم البياني (Graph)
 const workflow = new StateGraph(AgentState)
   .addNode("agent", callModel)
@@ -80,5 +86,5 @@ const workflow = new StateGraph(AgentState)
   .addConditionalEdges("agent", shouldContinue)
   .addEdge("tools", "agent");
 
-// تصدير الوكيل المجمع
-export const agent = workflow.compile();
+// تصدير الوكيل المجمع مع الذاكرة
+export const agent = workflow.compile({ checkpointer });
