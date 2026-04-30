@@ -34,30 +34,43 @@ const AgentState = Annotation.Root({
 });
 
 // Initialize Gemini model with correct model name and property
+// Added maxRetries: 0 to fail fast on Quota errors
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0-flash", // Updated to gemini-2.0-flash as requested
+  model: "gemini-2.0-flash", 
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
+  maxRetries: 0, // Disable long retries to avoid timeouts on Railway
 });
 
-const taskers = ["tasker_1", "tasker_2"];
-
-// 1. Analyze Task Node
-const analyzeTask = async (state) => {
-  console.log("--- ANALYZING TASK ---");
+// 1. Unified Agent Node (Simplified to 1 call instead of 3-4)
+const unifiedAgent = async (state) => {
+  console.log("--- PROCESSING TASK (UNIFIED) ---");
   try {
-    console.log(">>> INVOKING GEMINI FOR ANALYSIS...");
+    console.log(">>> INVOKING GEMINI...");
     const response = await model.invoke([
-      new SystemMessage("You are a task analyzer. Categorize the task and identify key requirements."),
+      new SystemMessage(`You are an all-in-one AI agent. 
+      Your job is to:
+      1. Analyze the task.
+      2. Execute it immediately.
+      3. Self-review the output.
+      
+      Return your response in a clear format.`),
       new HumanMessage(state.task),
     ]);
+    
     console.log(">>> GEMINI RESPONSE RECEIVED");
     return { 
-      analysis: response.content,
-      logs: ["Task analyzed successfully"]
+      analysis: "Analyzed and executed in one step",
+      result: response.content,
+      assignedTo: "unified_agent",
+      qa: "Self-reviewed",
+      logs: ["Task processed successfully in unified mode"]
     };
   } catch (error) {
-    console.error("Error in analyzeTask:", error.message);
+    console.error("Error in unifiedAgent:", error.message);
+    if (error.message.includes("429") || error.message.includes("quota")) {
+      throw new Error(`GEMINI_QUOTA_ERROR: ${error.message}`);
+    }
     if (error.message.includes("401") || error.message.includes("API_KEY_INVALID") || error.message.includes("auth")) {
       throw new Error(`GEMINI_AUTH_ERROR: ${error.message}`);
     }
@@ -65,62 +78,10 @@ const analyzeTask = async (state) => {
   }
 };
 
-// 2. Assign Task Node
-const assignTask = async (state) => {
-  console.log("--- ASSIGNING TASK ---");
-  const tasker = taskers[Math.floor(Math.random() * taskers.length)];
-  return { 
-    assignedTo: tasker,
-    logs: [`Task assigned to ${tasker}`]
-  };
-};
-
-// 3. Execute Task Node
-const executeTask = async (state) => {
-  console.log("--- EXECUTING TASK ---");
-  try {
-    const response = await model.invoke([
-      new SystemMessage(`You are ${state.assignedTo}. Execute the following task based on the analysis.`),
-      new HumanMessage(`Task: ${state.task}\nAnalysis: ${state.analysis}`),
-    ]);
-    return { 
-      result: response.content,
-      logs: ["Task executed by tasker"]
-    };
-  } catch (error) {
-    console.error("Error in executeTask:", error.message);
-    throw error;
-  }
-};
-
-// 4. Review Task Node (QA)
-const reviewTask = async (state) => {
-  console.log("--- REVIEWING TASK (QA) ---");
-  try {
-    const response = await model.invoke([
-      new SystemMessage("You are a QA specialist. Review the execution result against the original task and analysis. Provide a score out of 10 and feedback."),
-      new HumanMessage(`Original Task: ${state.task}\nExecution Result: ${state.result}`),
-    ]);
-    return { 
-      qa: response.content,
-      logs: ["QA review completed"]
-    };
-  } catch (error) {
-    console.error("Error in reviewTask:", error.message);
-    throw error;
-  }
-};
-
-// Build the graph
+// Build the simplified graph
 const workflow = new StateGraph(AgentState)
-  .addNode("analyze", analyzeTask)
-  .addNode("assign", assignTask)
-  .addNode("execute", executeTask)
-  .addNode("review", reviewTask)
-  .addEdge("__start__", "analyze")
-  .addEdge("analyze", "assign")
-  .addEdge("assign", "execute")
-  .addEdge("execute", "review")
-  .addEdge("review", "__end__");
+  .addNode("agent", unifiedAgent)
+  .addEdge("__start__", "agent")
+  .addEdge("agent", "__end__");
 
 export const agent = workflow.compile();

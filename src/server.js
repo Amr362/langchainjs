@@ -93,7 +93,10 @@ app.post("/task/run", async (req, res) => {
     let statusCode = 500;
     let errorMessage = "AI Agent failed to process the task";
     
-    if (error.message.includes("GEMINI_AUTH_ERROR") || error.message.includes("401") || error.message.includes("API_KEY_INVALID")) {
+    if (error.message.includes("GEMINI_QUOTA_ERROR") || error.message.includes("429")) {
+      statusCode = 429;
+      errorMessage = "Gemini API Quota exceeded. Please wait a moment before trying again or use a different key.";
+    } else if (error.message.includes("GEMINI_AUTH_ERROR") || error.message.includes("401") || error.message.includes("API_KEY_INVALID")) {
       statusCode = 401;
       errorMessage = "Authentication failed with Gemini. Please check your API Key in Railway.";
     }
