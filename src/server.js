@@ -12,108 +12,56 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1) CORS configuration
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
+app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../public")));
 
 const PORT = process.env.PORT || 8080;
-const tasks = [];
 
-// Logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
+// نقطة النهاية الرئيسية لتشغيل المهام
+app.post("/task/run", async (req, res) => {
+  const { task } = req.body;
+
+  if (!task) {
+    return res.status(400).json({ success: false, error: "المهمة مطلوبة" });
+  }
+
+  try {
+    console.log(`>>> جاري تنفيذ المهمة: "${task}"`);
+    
+    const initialState = {
+      task: task,
+      messages: [],
+      logs: []
+    };
+
+    // تنفيذ الوكيل (سيعمل بشكل تكراري حتى ينتهي)
+    const finalState = await agent.invoke(initialState);
+
+    // استخراج النتيجة النهائية (آخر رسالة من النموذج)
+    const lastMessage = finalState.messages[finalState.messages.length - 1];
+    
+    res.json({
+      success: true,
+      output: lastMessage.content,
+      logs: finalState.logs,
+      steps: finalState.messages.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(">>> خطأ في تنفيذ الوكيل:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "فشل الوكيل في معالجة المهمة",
+      details: error.message 
+    });
+  }
 });
-
-app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// Healthcheck endpoint
-app.get("/setup/healthz", (req, res) => {
-  res.status(200).send("ok");
-});
-
-// Main API Endpoint
-app.post("/task/run", async (req, res) => {
-  const { task } = req.body;
-
-  if (!task || typeof task !== 'string' || task.trim() === '') {
-    return res.status(400).json({ 
-      success: false,
-      error: "task is required" 
-    });
-  }
-
-  // Check for Gemini API Key (Replaced OpenAI check)
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_api_key_here' || process.env.GEMINI_API_KEY === 'dummy_key') {
-    console.error(">>> Error: GEMINI_API_KEY is missing or placeholder");
-    return res.status(401).json({
-      success: false,
-      error: "Gemini API Key is missing. Please set a valid GEMINI_API_KEY in Railway environment variables."
-    });
-  }
-
-  console.log(`>>> Processing task with Gemini: "${task}"`);
-  console.log(">>> GEMINI_API_KEY present:", !!process.env.GEMINI_API_KEY);
-
-  try {
-    const initialState = {
-      task: task,
-      logs: []
-    };
-
-    const finalState = await agent.invoke(initialState);
-
-    const result = {
-      success: true,
-      output: finalState.result || "No output generated",
-      analysis: finalState.analysis,
-      assignedTo: finalState.assignedTo,
-      qa: finalState.qa,
-      logs: finalState.logs,
-      timestamp: new Date().toISOString()
-    };
-
-    tasks.push({ id: tasks.length + 1, ...result });
-    
-    console.log(">>> Task completed successfully via Gemini");
-    res.json(result);
-  } catch (error) {
-    console.error(">>> Agent Execution Error Full:", error);
-    console.error(">>> Agent Execution Error Message:", error.message);
-    
-    let statusCode = 500;
-    let errorMessage = "AI Agent failed to process the task";
-    
-    if (error.message.includes("GEMINI_QUOTA_ERROR") || error.message.includes("429")) {
-      statusCode = 429;
-      errorMessage = "Gemini API Quota exceeded. Please wait a moment before trying again or use a different key.";
-    } else if (error.message.includes("GEMINI_AUTH_ERROR") || error.message.includes("401") || error.message.includes("API_KEY_INVALID")) {
-      statusCode = 401;
-      errorMessage = "Authentication failed with Gemini. Please check your API Key in Railway.";
-    }
-
-    res.status(statusCode).json({ 
-      success: false, 
-      error: errorMessage, 
-      details: error.message,
-      output: "I'm sorry, I encountered an error while processing your request. Please try again later."
-    });
-  }
-});
-
-app.get("/tasks", (req, res) => {
-  res.json(tasks);
-});
-
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running on http://0.0.0.0:${PORT}`);
+  console.log(`الخادم يعمل على http://0.0.0.0:${PORT}`);
 });

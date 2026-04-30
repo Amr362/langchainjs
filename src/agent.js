@@ -1,29 +1,19 @@
-import { StateGraph, Annotation } from "@langchain/langgraph";
+import { StateGraph, Annotation, END, START } from "@langchain/langgraph";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import { tools } from "./services/tools.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// Define the state of our graph with proper reducers
+// تعريف حالة الوكيل (Agent State)
 const AgentState = Annotation.Root({
+  messages: Annotation({
+    reducer: (x, y) => x.concat(y),
+    default: () => [],
+  }),
   task: Annotation({
-    reducer: (x, y) => y ?? x,
-    default: () => "",
-  }),
-  analysis: Annotation({
-    reducer: (x, y) => y ?? x,
-    default: () => "",
-  }),
-  assignedTo: Annotation({
-    reducer: (x, y) => y ?? x,
-    default: () => "",
-  }),
-  result: Annotation({
-    reducer: (x, y) => y ?? x,
-    default: () => "",
-  }),
-  qa: Annotation({
     reducer: (x, y) => y ?? x,
     default: () => "",
   }),
@@ -33,55 +23,62 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// Initialize Gemini model with correct model name and property
-// Added maxRetries: 0 to fail fast on Quota errors
+// تهيئة نموذج اللغة مع ربط الأدوات
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-flash-latest", 
-  maxOutputTokens: 2048,
-  apiKey: process.env.GEMINI_API_KEY,
-  maxRetries: 0, // Disable long retries to avoid timeouts on Railway
-});
+  model: "gemini-1.5-flash",
+  apiKey: process.env.GEMINI_API_KEY || "dummy_key",
+  temperature: 0,
+}).bindTools(tools);
 
-// 1. Unified Agent Node (Simplified to 1 call instead of 3-4)
-const unifiedAgent = async (state) => {
-  console.log("--- PROCESSING TASK (UNIFIED) ---");
-  try {
-    console.log(">>> INVOKING GEMINI...");
-    const response = await model.invoke([
-      new SystemMessage(`You are an all-in-one AI agent. 
-      Your job is to:
-      1. Analyze the task.
-      2. Execute it immediately.
-      3. Self-review the output.
-      
-      Return your response in a clear format.`),
-      new HumanMessage(state.task),
-    ]);
-    
-    console.log(">>> GEMINI RESPONSE RECEIVED");
-    return { 
-      analysis: "Analyzed and executed in one step",
-      result: response.content,
-      assignedTo: "unified_agent",
-      qa: "Self-reviewed",
-      logs: ["Task processed successfully in unified mode"]
-    };
-  } catch (error) {
-    console.error("Error in unifiedAgent:", error.message);
-    if (error.message.includes("429") || error.message.includes("quota")) {
-      throw new Error(`GEMINI_QUOTA_ERROR: ${error.message}`);
-    }
-    if (error.message.includes("401") || error.message.includes("API_KEY_INVALID") || error.message.includes("auth")) {
-      throw new Error(`GEMINI_AUTH_ERROR: ${error.message}`);
-    }
-    throw error;
+// عقدة نموذج اللغة (LLM Node)
+const callModel = async (state) => {
+  const { messages, task } = state;
+  
+  // إذا كانت الرسائل فارغة، نبدأ برسالة النظام والمهمة
+  let inputMessages = messages;
+  if (inputMessages.length === 0) {
+    inputMessages = [
+      new SystemMessage(`أنت وكيل ذكي متطور (Agentic AI) مشابه لـ "مانوس". 
+      مهمتك هي تنفيذ طلبات المستخدم بدقة واستقلالية.
+      يمكنك استخدام الأدوات المتاحة لك للبحث عن المعلومات أو إجراء الحسابات.
+      فكر خطوة بخطوة، وإذا احتجت لمعلومات إضافية استخدم أداة البحث.
+      أجب دائماً باللغة العربية بشكل احترافي.`),
+      new HumanMessage(task)
+    ];
   }
+
+  const response = await model.invoke(inputMessages);
+  
+  return { 
+    messages: [response],
+    logs: [`الوكيل يفكر: ${response.content || "استدعاء أداة..."}`]
+  };
 };
 
-// Build the simplified graph
-const workflow = new StateGraph(AgentState)
-  .addNode("agent", unifiedAgent)
-  .addEdge("__start__", "agent")
-  .addEdge("agent", "__end__");
+// عقدة الأدوات (Tool Node)
+const toolNode = new ToolNode(tools);
 
+// وظيفة اتخاذ القرار (Router)
+const shouldContinue = (state) => {
+  const { messages } = state;
+  const lastMessage = messages[messages.length - 1];
+  
+  // إذا كان النموذج يطلب استدعاء أداة، ننتقل لعقدة الأدوات
+  if (lastMessage.tool_calls?.length > 0) {
+    return "tools";
+  }
+  
+  // خلاف ذلك، ننهي العمل
+  return END;
+};
+
+// بناء الرسم البياني (Graph)
+const workflow = new StateGraph(AgentState)
+  .addNode("agent", callModel)
+  .addNode("tools", toolNode)
+  .addEdge(START, "agent")
+  .addConditionalEdges("agent", shouldContinue)
+  .addEdge("tools", "agent");
+
+// تصدير الوكيل المجمع
 export const agent = workflow.compile();
