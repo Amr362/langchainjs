@@ -29,7 +29,47 @@
       flex-direction: column;
       overflow: hidden;
     }
-    .container { display: flex; flex-direction: column; height: 100vh; }
+    .container { display: flex; height: 100vh; overflow: hidden; }
+    .sidebar {
+      width: 260px;
+      background: rgba(15, 23, 42, 0.95);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      z-index: 50;
+    }
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .connector-item {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .connector-name { font-weight: 600; margin-bottom: 0.25rem; }
+    .connector-type { color: var(--muted); font-size: 0.75rem; }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+    }
     .header {
       background: var(--glass-bg);
       backdrop-filter: blur(10px);
@@ -153,33 +193,51 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <div class="header-content">
-        <h1>Manus Clone</h1>
-        <p style="color: var(--muted)">الوكيل الذكي المتطور - ينفذ المهام باستقلالية</p>
+    <!-- Sidebar for Connectors -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span>الموصلات (Connectors)</span>
+        <button id="refreshConnectors" style="background:none; border:none; color:var(--primary); cursor:pointer;">↻</button>
+      </div>
+      <div class="sidebar-content" id="connectorsList">
+        <div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>
       </div>
     </div>
-    <div class="messages-container" id="chat">
-      <div class="messages-content" id="messages">
-        <div class="message assistant">
-          <div class="bubble">مرحباً! أنا وكيلك الذكي. كيف يمكنني مساعدتك اليوم؟ يمكنك أن تطلب مني البحث عن معلومات، إجراء حسابات، أو تنفيذ مهام معقدة.</div>
+
+    <!-- Main Chat Area -->
+    <div class="main-content">
+      <div class="header">
+        <div class="header-content">
+          <h1>Manus Clone</h1>
+          <p style="color: var(--muted)">الوكيل الذكي المتطور - تصفح، برمجة، وربط تطبيقات</p>
         </div>
       </div>
-    </div>
-    <div class="input-container">
-      <div class="input-content">
-        <div class="input-wrapper">
-          <div id="filePreview" class="file-preview">
-            <span id="fileName"></span>
-            <span class="remove-file" id="removeFile">✕</span>
+      <div class="messages-container" id="chat">
+        <div class="messages-content" id="messages">
+          <div class="message assistant">
+            <div class="bubble">مرحباً! أنا وكيلك الذكي. لقد تم تحديثي الآن بقدرات فائقة:
+              <br>🌐 <b>تصفح المواقع:</b> يمكنني زيارة المواقع والتفاعل معها.
+              <br>💻 <b>تعديل الكود:</b> يمكنني قراءة وكتابة الملفات وتنفيذ الأوامر.
+              <br>🔌 <b>الموصلات:</b> يمكنني ربط تطبيقاتك الخارجية وإدارتها.
+              <br>كيف يمكنني مساعدتك اليوم؟</div>
           </div>
-          <div class="input-actions">
-            <input type="file" id="fileInput" style="display: none;">
-            <button class="upload-btn" id="uploadBtn" title="رفع ملف">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            </button>
-            <textarea id="taskInput" placeholder="اكتب مهمتك هنا..." rows="1"></textarea>
-            <button class="send-btn" id="sendBtn">إرسال</button>
+        </div>
+      </div>
+      <div class="input-container">
+        <div class="input-content">
+          <div class="input-wrapper">
+            <div id="filePreview" class="file-preview">
+              <span id="fileName"></span>
+              <span class="remove-file" id="removeFile">✕</span>
+            </div>
+            <div class="input-actions">
+              <input type="file" id="fileInput" style="display: none;">
+              <button class="upload-btn" id="uploadBtn" title="رفع ملف">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </button>
+              <textarea id="taskInput" placeholder="اكتب مهمتك هنا (مثلاً: تصفح موقع جوجل، أو عدل ملف server.js)..." rows="1"></textarea>
+              <button class="send-btn" id="sendBtn">إرسال</button>
+            </div>
           </div>
         </div>
       </div>
@@ -235,6 +293,30 @@
       filePreview.classList.remove('active');
       fileInput.value = '';
     });
+
+    // وظيفة جلب الموصلات وتحديث القائمة
+    async function updateConnectors() {
+      try {
+        const response = await fetch('/api/connectors');
+        const data = await response.json();
+        const list = document.getElementById('connectorsList');
+        if (data.connectors && data.connectors.length > 0) {
+          list.innerHTML = data.connectors.map(c => `
+            <div class="connector-item">
+              <div class="connector-name">${c.name}</div>
+              <div class="connector-type">${c.type} • ${c.status === 'enabled' ? 'نشط' : 'معطل'}</div>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>';
+        }
+      } catch (e) {
+        console.error('فشل جلب الموصلات');
+      }
+    }
+
+    document.getElementById('refreshConnectors').addEventListener('click', updateConnectors);
+    updateConnectors();
 
     sendBtn.addEventListener('click', async () => {
       const task = taskInput.value.trim();

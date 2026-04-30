@@ -4,6 +4,8 @@ import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
 import { browserTools } from "./browser_tools.js";
+import { codeTools } from "./code_tools.js";
+import { connectorTools } from "./connector_tools.js";
 
 dotenv.config();
 
@@ -88,5 +90,7 @@ export const tools = [
   timeTool, 
   readFileTool, 
   youtubeAnalyzerTool,
-  ...browserTools
+  ...browserTools,
+  ...codeTools,
+  ...connectorTools
 ];

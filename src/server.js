@@ -94,6 +94,17 @@ app.post("/task/run", async (req, res) => {
   }
 });
 
+// نقطة نهاية لجلب الموصلات المضافة
+app.get("/api/connectors", (req, res) => {
+  const connectorsFile = path.join(__dirname, "../data/connectors.json");
+  if (fs.existsSync(connectorsFile)) {
+    const data = JSON.parse(fs.readFileSync(connectorsFile, "utf-8"));
+    res.json(data);
+  } else {
+    res.json({ connectors: [] });
+  }
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
