@@ -33,9 +33,9 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// Initialize Gemini model with correct model name and settings
+// Initialize Gemini model with correct model name and property
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0-flash", // Correct property name is 'model'
+  model: "gemini-2.0-flash", // Updated to gemini-2.0-flash as requested
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
 });
