@@ -36,7 +36,7 @@ const AgentState = Annotation.Root({
 // Initialize Gemini model with correct model name and property
 // Added maxRetries: 0 to fail fast on Quota errors
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0-flash", 
+  model: "gemini-1.5-flash", 
   maxOutputTokens: 2048,
   apiKey: process.env.GEMINI_API_KEY,
   maxRetries: 0, // Disable long retries to avoid timeouts on Railway
