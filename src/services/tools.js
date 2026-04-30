@@ -3,6 +3,7 @@ import { z } from "zod";
 import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import { browserTools } from "./browser_tools.js";
 
 dotenv.config();
 
@@ -67,8 +68,6 @@ export const readFileTool = tool(
 export const youtubeAnalyzerTool = tool(
   async ({ videoUrl }) => {
     try {
-      // ملاحظة: في بيئة الإنتاج يفضل استخدام YouTube Data API
-      // هنا سنقوم ببحث سريع لجلب معلومات الفيديو إذا كان متاحاً
       return `تم استلام رابط يوتيوب: ${videoUrl}. سأقوم الآن بتحليل محتوى الفيديو بناءً على المشاهد المرئية والحوارات باستخدام قدرات Gemini المتعددة الوسائط.`;
     } catch (error) {
       return `خطأ في الوصول لرابط يوتيوب: ${error.message}`;
@@ -83,4 +82,11 @@ export const youtubeAnalyzerTool = tool(
   }
 );
 
-export const tools = [searchTool, calculatorTool, timeTool, readFileTool, youtubeAnalyzerTool];
+export const tools = [
+  searchTool, 
+  calculatorTool, 
+  timeTool, 
+  readFileTool, 
+  youtubeAnalyzerTool,
+  ...browserTools
+];
