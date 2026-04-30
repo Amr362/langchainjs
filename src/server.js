@@ -4,11 +4,31 @@ import path from "path";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import { agent } from "./agent.js";
+import multer from "multer";
+import fs from "fs";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// إعداد multer لتخزين الملفات المرفوعة
+const uploadDir = path.join(__dirname, "../public/uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 const app = express();
 
@@ -18,12 +38,21 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 const PORT = process.env.PORT || 8080;
 
+// نقطة نهاية لرفع الملفات
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: "لم يتم رفع أي ملف" });
+  }
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({ success: true, file_url: fileUrl, filename: req.file.originalname });
+});
+
 // نقطة النهاية الرئيسية لتشغيل المهام
 app.post("/task/run", async (req, res) => {
   const { task, thread_id, file_url } = req.body;
 
-  if (!task) {
-    return res.status(400).json({ success: false, error: "المهمة مطلوبة" });
+  if (!task && !file_url) {
+    return res.status(400).json({ success: false, error: "المهمة أو الملف مطلوب" });
   }
 
   const threadId = thread_id || "default-session";
