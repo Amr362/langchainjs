@@ -4,6 +4,7 @@ import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
 import { browserTools } from "./browser_tools.js";
+import { loadConnectorsAsTools } from "./connector_loader.js";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ export const calculatorTool = tool(
     name: "calculator",
     description: "تستخدم لإجراء العمليات الحسابية الرياضية.",
     schema: z.object({
-      expression: z.string().describe("العملية الرياضية المراد حسابها، مثل '2 + 2'"),
+      expression: z.string().describe("العملية الرياضية المراد حسابها، مثل \'2 + 2\'"),
     }),
   }
 );
@@ -34,7 +35,7 @@ export const calculatorTool = tool(
 // 3. أداة للحصول على الوقت الحالي
 export const timeTool = tool(
   async () => {
-    return `الوقت الحالي هو: ${new Date().toLocaleString('ar-EG')}`;
+    return `الوقت الحالي هو: ${new Date().toLocaleString("ar-EG")}`;
   },
   {
     name: "get_current_time",
@@ -82,11 +83,15 @@ export const youtubeAnalyzerTool = tool(
   }
 );
 
-export const tools = [
-  searchTool, 
-  calculatorTool, 
-  timeTool, 
-  readFileTool, 
-  youtubeAnalyzerTool,
-  ...browserTools
-];
+export const getTools = async () => {
+  const connectorTools = await loadConnectorsAsTools();
+  return [
+    searchTool,
+    calculatorTool,
+    timeTool,
+    readFileTool,
+    youtubeAnalyzerTool,
+    ...browserTools,
+    ...connectorTools,
+  ];
+};

@@ -3,25 +3,48 @@ import { z } from "zod";
 import { chromium } from "playwright";
 
 let browser;
+let context;
 let page;
 
 const ensureBrowser = async () => {
   if (!browser) {
-    browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+    browser = await chromium.launch({ 
+      headless: true,
+      args: [
+        '--disable-blink-features=AutomationControlled',
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ]
     });
+    context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 720 },
+      deviceScaleFactor: 1,
+    });
+    
+    // إضافة script لإخفاء خاصية webdriver
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
+    });
+
     page = await context.newPage();
   }
   return page;
 };
 
-// 1. أداة الانتقال إلى رابط
+// 1. أداة الانتقال إلى رابط مع انتظار ذكي
 export const navigateTool = tool(
   async ({ url }) => {
     try {
       const page = await ensureBrowser();
-      await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+      console.log(`>>> جاري الانتقال إلى: ${url}`);
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+      
+      // انتظار إضافي عشوائي لمحاكاة السلوك البشري
+      await page.waitForTimeout(2000); 
+      
       const title = await page.title();
       return `تم الانتقال بنجاح إلى ${url}. عنوان الصفحة: ${title}`;
     } catch (error) {
@@ -37,13 +60,18 @@ export const navigateTool = tool(
   }
 );
 
-// 2. أداة استخراج النص من الصفحة
+// 2. أداة استخراج النص مع تنظيف
 export const getTextTool = tool(
   async () => {
     try {
       const page = await ensureBrowser();
-      const text = await page.evaluate(() => document.body.innerText);
-      return text.length > 10000 ? text.substring(0, 10000) + "..." : text;
+      const text = await page.evaluate(() => {
+        // إزالة العناصر غير الضرورية مثل scripts و styles
+        const scripts = document.querySelectorAll('script, style, nav, footer');
+        scripts.forEach(s => s.remove());
+        return document.body.innerText;
+      });
+      return text.length > 8000 ? text.substring(0, 8000) + "..." : text;
     } catch (error) {
       return `خطأ في استخراج النص: ${error.message}`;
     }
@@ -55,12 +83,13 @@ export const getTextTool = tool(
   }
 );
 
-// 3. أداة النقر على عنصر
+// الأدوات الأخرى تبقى كما هي مع استخدام ensureBrowser المحسن
 export const clickTool = tool(
   async ({ selector }) => {
     try {
       const page = await ensureBrowser();
-      await page.click(selector, { timeout: 30000 });
+      await page.click(selector, { timeout: 15000 });
+      await page.waitForTimeout(1000);
       return `تم النقر بنجاح على العنصر: ${selector}`;
     } catch (error) {
       return `خطأ في النقر على العنصر: ${error.message}`;
@@ -75,12 +104,11 @@ export const clickTool = tool(
   }
 );
 
-// 4. أداة الكتابة في حقل إدخال
 export const typeTool = tool(
   async ({ selector, text }) => {
     try {
       const page = await ensureBrowser();
-      await page.fill(selector, text, { timeout: 30000 });
+      await page.fill(selector, text, { timeout: 15000 });
       return `تمت الكتابة بنجاح في الحقل: ${selector}`;
     } catch (error) {
       return `خطأ في الكتابة: ${error.message}`;
@@ -96,7 +124,6 @@ export const typeTool = tool(
   }
 );
 
-// 5. أداة أخذ لقطة شاشة (للمساعدة في التصحيح)
 export const screenshotTool = tool(
   async ({ name }) => {
     try {
