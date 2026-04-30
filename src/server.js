@@ -20,32 +20,31 @@ const PORT = process.env.PORT || 8080;
 
 // نقطة النهاية الرئيسية لتشغيل المهام
 app.post("/task/run", async (req, res) => {
-  const { task, thread_id } = req.body;
+  const { task, thread_id, file_url } = req.body;
 
   if (!task) {
     return res.status(400).json({ success: false, error: "المهمة مطلوبة" });
   }
 
-  // استخدام thread_id افتراضي إذا لم يتم توفيره (للتوافق مع الواجهة الحالية)
   const threadId = thread_id || "default-session";
 
   try {
     console.log(`>>> جاري تنفيذ المهمة: "${task}" في الجلسة: ${threadId}`);
+    if (file_url) console.log(`>>> ملف مرتبط: ${file_url}`);
     
     const config = {
       configurable: { thread_id: threadId }
     };
 
-    // في LangGraph مع Checkpointer، نمرر فقط التغييرات (المدخلات الجديدة)
-    // initialState هنا يمثل المدخلات الجديدة لهذه الخطوة
     const inputs = {
-      task: task
+      task: task,
+      file_url: file_url || null
     };
 
-    // تنفيذ الوكيل (سيعمل بشكل تكراري حتى ينتهي)
+    // تنفيذ الوكيل
     const finalState = await agent.invoke(inputs, config);
 
-    // استخراج النتيجة النهائية (آخر رسالة من النموذج)
+    // استخراج النتيجة النهائية
     const lastMessage = finalState.messages[finalState.messages.length - 1];
     
     res.json({

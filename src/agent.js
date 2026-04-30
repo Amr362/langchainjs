@@ -17,6 +17,10 @@ const AgentState = Annotation.Root({
     reducer: (x, y) => y ?? x,
     default: () => "",
   }),
+  file_url: Annotation({
+    reducer: (x, y) => y ?? x,
+    default: () => null,
+  }),
   logs: Annotation({
     reducer: (x, y) => x.concat(y),
     default: () => [],
@@ -32,22 +36,42 @@ const model = new ChatGoogleGenerativeAI({
 
 // عقدة نموذج اللغة (LLM Node)
 const callModel = async (state) => {
-  const { messages, task } = state;
+  const { messages, task, file_url } = state;
   
-  // إذا كانت الرسائل فارغة، نبدأ برسالة النظام والمهمة
-  let inputMessages = messages;
+  let inputMessages = [...messages];
+  
+  // إذا كانت هذه هي البداية، نضيف رسالة النظام
   if (inputMessages.length === 0) {
-    inputMessages = [
+    inputMessages.push(
       new SystemMessage(`أنت وكيل ذكي متطور (Agentic AI) مشابه لـ "مانوس". 
       مهمتك هي تنفيذ طلبات المستخدم بدقة واستقلالية.
-      يمكنك استخدام الأدوات المتاحة لك للبحث عن المعلومات أو إجراء الحسابات.
-      فكر خطوة بخطوة، وإذا احتجت لمعلومات إضافية استخدم أداة البحث.
-      أجب دائماً باللغة العربية بشكل احترافي.`),
-      new HumanMessage(task)
-    ];
-  } else if (task) {
-    // إذا كان هناك مهمة جديدة في محادثة مستمرة، نضيفها كرسالة إنسان
-    inputMessages = [...messages, new HumanMessage(task)];
+      يمكنك استخدام الأدوات المتاحة لك للبحث عن المعلومات، إجراء الحسابات، أو قراءة الملفات.
+      لديك قدرات رؤية وتحليل ملفات (Multimodal)، إذا أرسل المستخدم رابط صورة أو ملف، قم بتحليله.
+      فكر خطوة بخطوة، وأجب دائماً باللغة العربية بشكل احترافي.`)
+    );
+  }
+
+  // إذا كان هناك مهمة جديدة، نضيفها
+  if (task) {
+    let content = [{ type: "text", text: task }];
+    
+    // إذا تم توفير رابط ملف (صورة أو PDF)، نضيفه للمحتوى
+    if (file_url) {
+      const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(file_url);
+      const isPDF = /\.pdf$/i.test(file_url);
+      
+      if (isImage) {
+        content.push({
+          type: "image_url",
+          image_url: file_url,
+        });
+      } else if (isPDF) {
+        // Gemini يدعم ملفات PDF عبر الروابط في بعض الإصدارات، أو يمكن للوكيل استخدام أداة القراءة
+        content[0].text += `\n(ملاحظة: يوجد ملف PDF مرتبط بهذا الطلب في الرابط: ${file_url})`;
+      }
+    }
+    
+    inputMessages.push(new HumanMessage({ content }));
   }
 
   const response = await model.invoke(inputMessages);
@@ -66,12 +90,10 @@ const shouldContinue = (state) => {
   const { messages } = state;
   const lastMessage = messages[messages.length - 1];
   
-  // إذا كان النموذج يطلب استدعاء أداة، ننتقل لعقدة الأدوات
   if (lastMessage.tool_calls?.length > 0) {
     return "tools";
   }
   
-  // خلاف ذلك، ننهي العمل
   return END;
 };
 
