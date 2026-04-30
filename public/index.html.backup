@@ -20,24 +20,16 @@
       --border: rgba(255, 255, 255, 0.1);
       --glass-bg: rgba(255, 255, 255, 0.05);
     }
-    html, body {
-      height: 100%;
-      width: 100%;
-    }
     body {
       font-family: 'Outfit', sans-serif;
       background: var(--background);
       color: var(--foreground);
+      height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .container { 
-      display: flex; 
-      height: 100vh; 
-      overflow: hidden;
-      flex: 1;
-    }
+    .container { display: flex; height: 100vh; overflow: hidden; }
     .sidebar {
       width: 260px;
       background: rgba(15, 23, 42, 0.95);
@@ -46,7 +38,6 @@
       flex-direction: column;
       transition: all 0.3s ease;
       z-index: 50;
-      overflow-y: auto;
     }
     .sidebar-header {
       padding: 1.5rem;
@@ -61,35 +52,6 @@
       flex: 1;
       overflow-y: auto;
       padding: 1rem;
-    }
-    .quick-connectors {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .quick-connectors-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 0.75rem;
-    }
-    .quick-connector-btn {
-      width: 100%;
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid var(--border);
-      color: var(--primary);
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .quick-connector-btn:hover {
-      background: rgba(6, 182, 212, 0.2);
-      border-color: var(--primary);
     }
     .connector-item {
       background: var(--glass-bg);
@@ -110,7 +72,6 @@
       flex-direction: column;
       height: 100vh;
       position: relative;
-      overflow: hidden;
     }
     .header {
       background: var(--glass-bg);
@@ -128,20 +89,8 @@
       -webkit-text-fill-color: transparent;
       margin-bottom: 0.25rem;
     }
-    .messages-container { 
-      flex: 1; 
-      overflow-y: auto; 
-      padding: 2rem 1rem;
-      display: flex;
-      flex-direction: column;
-    }
-    .messages-content { 
-      max-width: 100%; 
-      margin: 0 auto; 
-      display: flex; 
-      flex-direction: column;
-      width: 100%;
-    }
+    .messages-container { flex: 1; overflow-y: auto; padding: 2rem 1rem; }
+    .messages-content { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
     .message { margin-bottom: 1.5rem; display: flex; flex-direction: column; animation: slideIn 0.4s ease-out; }
     .message.user { align-items: flex-end; }
     .message.assistant { align-items: flex-start; }
@@ -178,6 +127,9 @@
       font-size: 0.85rem;
       color: var(--primary);
       font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .browser-preview-content {
       padding: 1rem;
@@ -257,8 +209,6 @@
       font-family: inherit;
       font-size: 1rem;
       resize: none;
-      min-height: 40px;
-      max-height: 100px;
     }
     .send-btn {
       background: linear-gradient(to right, #06B6D4, #A855F7);
@@ -350,14 +300,13 @@
       cursor: pointer;
       font-size: 1.5rem;
       padding: 0.5rem;
-      position: fixed;
+      position: absolute;
       top: 1rem;
       left: 1rem;
       z-index: 101;
     }
     .hamburger-menu.active { color: var(--secondary); }
     @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    
     @media (max-width: 768px) {
       .container { flex-direction: column; }
       .sidebar {
@@ -368,36 +317,18 @@
         border-left: none;
         border-bottom: 1px solid var(--border);
         transition: max-height 0.3s ease;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 99;
+        position: relative;
       }
       .sidebar.active {
-        max-height: 350px;
+        max-height: 400px;
         border-bottom: 1px solid var(--border);
       }
-      .main-content { 
-        height: 100vh;
-        margin-top: 3rem;
-        display: flex;
-        flex-direction: column;
-      }
+      .main-content { height: auto; }
       .hamburger-menu { display: block; }
-      .header { padding-top: 0; }
       .header h1 { font-size: 1.5rem; }
-      .messages-container { 
-        padding: 1rem 0.5rem;
-        flex: 1;
-        overflow-y: auto;
-      }
+      .header-content { padding-top: 2.5rem; }
+      .messages-container { padding: 1rem 0.5rem; }
       .bubble { max-width: 95%; }
-      .input-container { 
-        flex-shrink: 0;
-        position: relative;
-        z-index: 10;
-      }
       .input-actions {
         flex-wrap: wrap;
       }
@@ -424,7 +355,6 @@
       .connector-item { padding: 0.5rem; font-size: 0.8rem; }
       .modal-header { font-size: 1.2rem; }
       .form-group input, .form-group textarea { padding: 0.5rem; font-size: 16px; }
-      .quick-connector-btn { font-size: 0.75rem; padding: 0.5rem; }
     }
   </style>
 </head>
@@ -445,24 +375,6 @@
         <span>الموصلات (Connectors)</span>
         <button id="refreshConnectors" style="background:none; border:none; color:var(--primary); cursor:pointer;">↻</button>
       </div>
-      
-      <!-- Quick Connectors -->
-      <div class="quick-connectors">
-        <div class="quick-connectors-title">الموصلات السريعة</div>
-        <button class="quick-connector-btn" data-connector="github">
-          <span>🐙</span> GitHub
-        </button>
-        <button class="quick-connector-btn" data-connector="slack">
-          <span>💬</span> Slack
-        </button>
-        <button class="quick-connector-btn" data-connector="google">
-          <span>🔍</span> Google
-        </button>
-        <button class="quick-connector-btn" data-connector="twitter">
-          <span>𝕏</span> Twitter
-        </button>
-      </div>
-
       <div class="sidebar-content" id="connectorsList">
         <div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>
       </div>
@@ -505,7 +417,7 @@
               <button class="tool-btn" id="connectorsBtn" title="إدارة الموصلات">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M12 1v6m0 6v6"></path><path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path><path d="M1 12h6m6 0h6"></path><path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path></svg>
               </button>
-              <textarea id="taskInput" placeholder="اكتب مهمتك هنا..." rows="1"></textarea>
+              <textarea id="taskInput" placeholder="اكتب مهمتك هنا (مثلاً: تصفح موقع جوجل، أو عدل ملف server.js)..." rows="1"></textarea>
               <button class="send-btn" id="sendBtn">إرسال</button>
             </div>
           </div>
@@ -561,34 +473,9 @@
     const refreshConnectors = document.getElementById('refreshConnectors');
     const hamburgerMenu = document.getElementById('hamburgerMenu');
     const sidebar = document.getElementById('sidebar');
-    const quickConnectorBtns = document.querySelectorAll('.quick-connector-btn');
 
     let currentFileUrl = null;
     let currentFileName = null;
-
-    // Quick Connectors Configuration
-    const quickConnectorsConfig = {
-      github: {
-        name: 'GitHub',
-        type: 'github',
-        config: { api_key: 'your_github_token', url: 'https://api.github.com' }
-      },
-      slack: {
-        name: 'Slack',
-        type: 'slack',
-        config: { webhook_url: 'your_slack_webhook', api_token: 'your_slack_token' }
-      },
-      google: {
-        name: 'Google',
-        type: 'google',
-        config: { api_key: 'your_google_api_key', search_engine_id: 'your_cse_id' }
-      },
-      twitter: {
-        name: 'Twitter/X',
-        type: 'twitter',
-        config: { api_key: 'your_twitter_api_key', api_secret: 'your_api_secret' }
-      }
-    };
 
     // وظيفة جلب الموصلات وتحديث القائمة
     async function updateConnectors() {
@@ -610,35 +497,6 @@
         console.error('فشل جلب الموصلات');
       }
     }
-
-    // إضافة موصل سريع
-    quickConnectorBtns.forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const connectorType = btn.dataset.connector;
-        const config = quickConnectorsConfig[connectorType];
-        
-        if (config) {
-          try {
-            const response = await fetch('/task/run', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                task: `أضف موصل جديد باسم "${config.name}" من نوع "${config.type}" بالإعدادات: ${JSON.stringify(config.config)}` 
-              })
-            });
-            const data = await response.json();
-            if (data.success) {
-              updateConnectors();
-              sidebar.classList.remove('active');
-              hamburgerMenu.classList.remove('active');
-              alert(`تم ربط ${config.name} بنجاح!`);
-            }
-          } catch (e) {
-            alert(`فشل ربط ${config.name}`);
-          }
-        }
-      });
-    });
 
     // فتح/إغلاق نافذة الموصلات
     connectorsBtn.addEventListener('click', () => connectorModal.classList.add('active'));
@@ -740,7 +598,7 @@
       const logsDiv = assistantMsg.querySelector('#current-logs');
 
       sendBtn.disabled = true;
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      chatContainer.scrollTo(0, chatContainer.scrollHeight);
 
       try {
         const response = await fetch('/task/run', {
@@ -757,7 +615,23 @@
             logsDiv.style.display = 'none';
           }
           
-          assistantMsg.querySelector('.bubble').innerHTML = data.output.replace(/\n/g, '<br>');
+          // عرض لقطة الشاشة إن وجدت في الرد
+          let output = data.output;
+          if (output.includes('screenshot') || output.includes('لقطة شاشة')) {
+            const browserPreview = document.createElement('div');
+            browserPreview.className = 'browser-preview';
+            browserPreview.innerHTML = `
+              <div class="browser-preview-header">
+                📱 معاينة المتصفح
+              </div>
+              <div class="browser-preview-content">
+                <p style="color: var(--muted); font-size: 0.9rem;">${output}</p>
+              </div>
+            `;
+            assistantMsg.appendChild(browserPreview);
+          }
+          
+          assistantMsg.querySelector('.bubble').innerHTML = output.replace(/\n/g, '<br>');
         } else {
           assistantMsg.querySelector('.bubble').textContent = 'عذراً، حدث خطأ أثناء تنفيذ المهمة.';
         }
@@ -765,7 +639,7 @@
         assistantMsg.querySelector('.bubble').textContent = 'فشل الاتصال بالخادم.';
       } finally {
         sendBtn.disabled = false;
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        chatContainer.scrollTo(0, chatContainer.scrollHeight);
       }
     });
 
