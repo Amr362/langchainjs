@@ -29,7 +29,7 @@ const AgentState = Annotation.Root({
 
 // تهيئة نموذج اللغة Gemini 2.5 Flash
 const model = new ChatGoogleGenerativeAI({
-  modelName: "gemini-2.5-flash",
+  model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
   temperature: 0,
 }).bindTools(tools);

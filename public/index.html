@@ -60,7 +60,10 @@
       border-radius: 0.5rem;
       margin-bottom: 0.75rem;
       font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
     }
+    .connector-item:hover { background: rgba(6, 182, 212, 0.1); border-color: var(--primary); }
     .connector-name { font-weight: 600; margin-bottom: 0.25rem; }
     .connector-type { color: var(--muted); font-size: 0.75rem; }
     .main-content {
@@ -77,7 +80,7 @@
       padding: 1rem;
       flex-shrink: 0;
     }
-    .header-content { max-width: 56rem; margin: 0 auto; text-align: center; }
+    .header-content { max-width: 100%; margin: 0 auto; text-align: center; }
     .header h1 {
       font-size: 2rem;
       font-weight: 700;
@@ -87,7 +90,7 @@
       margin-bottom: 0.25rem;
     }
     .messages-container { flex: 1; overflow-y: auto; padding: 2rem 1rem; }
-    .messages-content { max-width: 56rem; margin: 0 auto; display: flex; flex-direction: column; }
+    .messages-content { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
     .message { margin-bottom: 1.5rem; display: flex; flex-direction: column; animation: slideIn 0.4s ease-out; }
     .message.user { align-items: flex-end; }
     .message.assistant { align-items: flex-start; }
@@ -109,6 +112,35 @@
       border: 1px solid var(--border);
       border-radius: 1rem 1rem 1rem 0;
     }
+    .browser-preview {
+      max-width: 85%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      margin-top: 0.75rem;
+      overflow: hidden;
+    }
+    .browser-preview-header {
+      background: rgba(6, 182, 212, 0.1);
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .browser-preview-content {
+      padding: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .browser-preview-content img {
+      width: 100%;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
     .logs-container {
       margin-top: 0.75rem;
       width: 100%;
@@ -128,7 +160,7 @@
       padding: 1.25rem;
       flex-shrink: 0;
     }
-    .input-content { max-width: 56rem; margin: 0 auto; }
+    .input-content { max-width: 100%; margin: 0 auto; }
     .input-wrapper {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(6, 182, 212, 0.3);
@@ -154,7 +186,7 @@
       color: var(--primary);
     }
     .file-preview.active { display: flex; }
-    .upload-btn {
+    .tool-btn {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--border);
@@ -166,7 +198,7 @@
       justify-content: center;
       transition: all 0.2s;
     }
-    .upload-btn:hover { color: var(--primary); border-color: var(--primary); }
+    .tool-btn:hover { color: var(--primary); border-color: var(--primary); }
     .remove-file { cursor: pointer; color: #ef4444; }
     textarea {
       flex: 1;
@@ -188,6 +220,78 @@
       font-weight: 600;
     }
     .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.5rem; }
+    .connector-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-group label { font-weight: 600; color: var(--primary); }
+    .form-group input, .form-group textarea {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      color: var(--foreground);
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(6, 182, 212, 0.1);
+    }
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .form-actions button {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary { background: linear-gradient(to right, #06B6D4, #A855F7); color: white; }
+    .btn-secondary { background: var(--glass-bg); border: 1px solid var(--border); color: var(--foreground); }
     @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
@@ -201,6 +305,9 @@
       </div>
       <div class="sidebar-content" id="connectorsList">
         <div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>
+      </div>
+      <div style="padding: 1rem; border-top: 1px solid var(--border);">
+        <button id="addConnectorBtn" class="send-btn" style="width: 100%;">+ إضافة موصل جديد</button>
       </div>
     </div>
 
@@ -216,7 +323,7 @@
         <div class="messages-content" id="messages">
           <div class="message assistant">
             <div class="bubble">مرحباً! أنا وكيلك الذكي. لقد تم تحديثي الآن بقدرات فائقة:
-              <br>🌐 <b>تصفح المواقع:</b> يمكنني زيارة المواقع والتفاعل معها.
+              <br>🌐 <b>تصفح المواقع:</b> يمكنني زيارة المواقع والتفاعل معها وعرض لقطات الشاشة.
               <br>💻 <b>تعديل الكود:</b> يمكنني قراءة وكتابة الملفات وتنفيذ الأوامر.
               <br>🔌 <b>الموصلات:</b> يمكنني ربط تطبيقاتك الخارجية وإدارتها.
               <br>كيف يمكنني مساعدتك اليوم؟</div>
@@ -232,8 +339,11 @@
             </div>
             <div class="input-actions">
               <input type="file" id="fileInput" style="display: none;">
-              <button class="upload-btn" id="uploadBtn" title="رفع ملف">
+              <button class="tool-btn" id="uploadBtn" title="رفع ملف">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </button>
+              <button class="tool-btn" id="connectorsBtn" title="إدارة الموصلات">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M12 1v6m0 6v6"></path><path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path><path d="M1 12h6m6 0h6"></path><path d="M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path></svg>
               </button>
               <textarea id="taskInput" placeholder="اكتب مهمتك هنا (مثلاً: تصفح موقع جوجل، أو عدل ملف server.js)..." rows="1"></textarea>
               <button class="send-btn" id="sendBtn">إرسال</button>
@@ -241,6 +351,34 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Connector Modal -->
+  <div class="modal" id="connectorModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>إضافة موصل جديد</span>
+        <button class="modal-close" id="closeModal">✕</button>
+      </div>
+      <form class="connector-form" id="connectorForm">
+        <div class="form-group">
+          <label>اسم الموصل</label>
+          <input type="text" id="connectorName" placeholder="مثال: GitHub Integration" required>
+        </div>
+        <div class="form-group">
+          <label>نوع الموصل</label>
+          <input type="text" id="connectorType" placeholder="مثال: github, slack, custom_api" required>
+        </div>
+        <div class="form-group">
+          <label>الإعدادات (JSON)</label>
+          <textarea id="connectorConfig" placeholder='{"api_key": "your_key", "url": "https://..."}' rows="4" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">إضافة الموصل</button>
+          <button type="button" class="btn-secondary" id="cancelBtn">إلغاء</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -254,10 +392,71 @@
     const filePreview = document.getElementById('filePreview');
     const fileNameSpan = document.getElementById('fileName');
     const removeFileBtn = document.getElementById('removeFile');
+    const connectorsBtn = document.getElementById('connectorsBtn');
+    const connectorModal = document.getElementById('connectorModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const connectorForm = document.getElementById('connectorForm');
+    const addConnectorBtn = document.getElementById('addConnectorBtn');
+    const refreshConnectors = document.getElementById('refreshConnectors');
 
     let currentFileUrl = null;
     let currentFileName = null;
 
+    // وظيفة جلب الموصلات وتحديث القائمة
+    async function updateConnectors() {
+      try {
+        const response = await fetch('/api/connectors');
+        const data = await response.json();
+        const list = document.getElementById('connectorsList');
+        if (data.connectors && data.connectors.length > 0) {
+          list.innerHTML = data.connectors.map(c => `
+            <div class="connector-item" onclick="selectConnector('${c.id}')">
+              <div class="connector-name">${c.name}</div>
+              <div class="connector-type">${c.type} • ${c.status === 'enabled' ? 'نشط' : 'معطل'}</div>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>';
+        }
+      } catch (e) {
+        console.error('فشل جلب الموصلات');
+      }
+    }
+
+    // فتح/إغلاق نافذة الموصلات
+    connectorsBtn.addEventListener('click', () => connectorModal.classList.add('active'));
+    addConnectorBtn.addEventListener('click', () => connectorModal.classList.add('active'));
+    closeModal.addEventListener('click', () => connectorModal.classList.remove('active'));
+    cancelBtn.addEventListener('click', () => connectorModal.classList.remove('active'));
+    refreshConnectors.addEventListener('click', updateConnectors);
+
+    // إضافة موصل جديد
+    connectorForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('connectorName').value;
+      const type = document.getElementById('connectorType').value;
+      const config_json = document.getElementById('connectorConfig').value;
+
+      try {
+        const response = await fetch('/task/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task: `أضف موصل جديد باسم "${name}" من نوع "${type}" بالإعدادات: ${config_json}` })
+        });
+        const data = await response.json();
+        if (data.success) {
+          connectorForm.reset();
+          connectorModal.classList.remove('active');
+          updateConnectors();
+          alert('تم إضافة الموصل بنجاح!');
+        }
+      } catch (e) {
+        alert('فشل إضافة الموصل');
+      }
+    });
+
+    // رفع الملفات
     uploadBtn.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', async (e) => {
@@ -294,35 +493,12 @@
       fileInput.value = '';
     });
 
-    // وظيفة جلب الموصلات وتحديث القائمة
-    async function updateConnectors() {
-      try {
-        const response = await fetch('/api/connectors');
-        const data = await response.json();
-        const list = document.getElementById('connectorsList');
-        if (data.connectors && data.connectors.length > 0) {
-          list.innerHTML = data.connectors.map(c => `
-            <div class="connector-item">
-              <div class="connector-name">${c.name}</div>
-              <div class="connector-type">${c.type} • ${c.status === 'enabled' ? 'نشط' : 'معطل'}</div>
-            </div>
-          `).join('');
-        } else {
-          list.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">لا توجد موصلات نشطة</div>';
-        }
-      } catch (e) {
-        console.error('فشل جلب الموصلات');
-      }
-    }
-
-    document.getElementById('refreshConnectors').addEventListener('click', updateConnectors);
-    updateConnectors();
-
+    // إرسال المهام
     sendBtn.addEventListener('click', async () => {
       const task = taskInput.value.trim();
       if (!task && !currentFileUrl) return;
 
-      // Add User Message
+      // إضافة رسالة المستخدم
       const userMsg = document.createElement('div');
       userMsg.className = 'message user';
       let userMsgHtml = `<div class="bubble">${task || 'تم رفع ملف'}</div>`;
@@ -340,7 +516,7 @@
       currentFileName = null;
       filePreview.classList.remove('active');
 
-      // Add Assistant Loading Message
+      // إضافة رسالة التحميل
       const assistantMsg = document.createElement('div');
       assistantMsg.className = 'message assistant';
       assistantMsg.innerHTML = `<div class="bubble">جاري التفكير وتنفيذ المهمة...</div><div class="logs-container" id="current-logs"></div>`;
@@ -359,14 +535,29 @@
         const data = await response.json();
 
         if (data.success) {
-          // Update Logs
           if (data.logs && data.logs.length > 0) {
             logsDiv.innerHTML = data.logs.map(log => `<div class="log-entry">⚡ ${log}</div>`).join('');
           } else {
             logsDiv.style.display = 'none';
           }
-          // Update Final Output
-          assistantMsg.querySelector('.bubble').innerHTML = data.output.replace(/\n/g, '<br>');
+          
+          // عرض لقطة الشاشة إن وجدت في الرد
+          let output = data.output;
+          if (output.includes('screenshot') || output.includes('لقطة شاشة')) {
+            const browserPreview = document.createElement('div');
+            browserPreview.className = 'browser-preview';
+            browserPreview.innerHTML = `
+              <div class="browser-preview-header">
+                📱 معاينة المتصفح
+              </div>
+              <div class="browser-preview-content">
+                <p style="color: var(--muted); font-size: 0.9rem;">${output}</p>
+              </div>
+            `;
+            assistantMsg.appendChild(browserPreview);
+          }
+          
+          assistantMsg.querySelector('.bubble').innerHTML = output.replace(/\n/g, '<br>');
         } else {
           assistantMsg.querySelector('.bubble').textContent = 'عذراً، حدث خطأ أثناء تنفيذ المهمة.';
         }
@@ -377,6 +568,9 @@
         chatContainer.scrollTo(0, chatContainer.scrollHeight);
       }
     });
+
+    // تحديث الموصلات عند التحميل
+    updateConnectors();
   </script>
 </body>
 </html>

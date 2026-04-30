@@ -1,2 +1,12 @@
-الخادم يعمل على http://0.0.0.0:8080
->>> جاري تنفيذ المهمة: "ما هو الوقت الآن؟" في الجلسة: default-session
+file:///home/ubuntu/langchainjs/node_modules/.pnpm/@langchain+google-genai@2.1.29_@langchain+core@1.1.42_openai@4.104.0_ws@8.20.0_zod@4.4.1__ws@8.20.0_/node_modules/@langchain/google-genai/dist/chat_models.js:440
+		if (!this.apiKey) throw new Error("Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor");
+		                        ^
+
+Error: Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor
+    at new ChatGoogleGenerativeAI (file:///home/ubuntu/langchainjs/node_modules/.pnpm/@langchain+google-genai@2.1.29_@langchain+core@1.1.42_openai@4.104.0_ws@8.20.0_zod@4.4.1__ws@8.20.0_/node_modules/@langchain/google-genai/dist/chat_models.js:440:27)
+    at file:///home/ubuntu/langchainjs/src/agent.js:31:15
+    at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
+
+Node.js v22.13.0
