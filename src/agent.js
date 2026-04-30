@@ -1,5 +1,5 @@
 import { StateGraph, Annotation, END, START, MemorySaver } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { tools } from "./services/tools.js";
@@ -27,14 +27,11 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// تهيئة نموذج اللغة باستخدام OpenAI (gpt-4.1-mini) المتاح في البيئة
-const model = new ChatOpenAI({
-  modelName: "gpt-4.1-mini",
+// تهيئة نموذج اللغة Gemini 2.5 Flash
+const model = new ChatGoogleGenerativeAI({
+  modelName: "gemini-2.5-flash",
+  apiKey: process.env.GEMINI_API_KEY,
   temperature: 0,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-  configuration: {
-    baseURL: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-  }
 }).bindTools(tools);
 
 // عقدة نموذج اللغة (LLM Node)
@@ -60,11 +57,20 @@ const callModel = async (state) => {
     
     if (file_url) {
       const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(file_url);
+      const isVideo = /\.(mp4|mov|avi|wmv|webm|flv)$/i.test(file_url);
+      
       if (isImage) {
         content.push({
           type: "image_url",
-          image_url: { url: file_url },
+          image_url: file_url,
         });
+      } else if (isVideo) {
+        content.push({
+          type: "media",
+          file_uri: file_url,
+          mime_type: "video/mp4"
+        });
+        content[0].text += `\n(يرجى تحليل الفيديو في الرابط: ${file_url})`;
       } else {
         content[0].text += `\n(ملاحظة: يوجد ملف مرتبط بهذا الطلب في الرابط: ${file_url})`;
       }

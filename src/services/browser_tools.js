@@ -96,7 +96,7 @@ export const typeTool = tool(
   }
 );
 
-// 5. أداة أخذ لقطة شاشة (للمساعدة في التصحيح)
+// 5. أداة أخذ لقطة شاشة
 export const screenshotTool = tool(
   async ({ name }) => {
     try {
