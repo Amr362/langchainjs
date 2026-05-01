@@ -27,11 +27,18 @@ const AgentState = Annotation.Root({
   }),
 });
 
-// تهيئة نموذج اللغة Gemini 2.5 Flash
+// التحقق من وجود مفاتيح API
+const GOOGLE_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+if (!GOOGLE_API_KEY) {
+  console.error("خطأ: لم يتم العثور على مفتاح API لـ Google/Gemini. يرجى ضبط GEMINI_API_KEY أو GOOGLE_API_KEY في ملف .env");
+}
+
+// تهيئة نموذج اللغة Gemini
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
-  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
-  temperature: 0,
+  model: "gemini-2.0-flash-exp", // استخدام نسخة أحدث وأسرع
+  apiKey: GOOGLE_API_KEY,
+  temperature: 0.2,
 }).bindTools(tools);
 
 // عقدة نموذج اللغة (LLM Node)
@@ -43,34 +50,33 @@ const callModel = async (state) => {
   // إذا كانت هذه هي البداية، نضيف رسالة النظام
   if (inputMessages.length === 0) {
     inputMessages.push(
-      new SystemMessage(`أنت وكيل ذكي متطور (Agentic AI) مشابه لـ "مانوس". 
+      new SystemMessage(`أنت وكيل ذكي متطور (Agentic AI) يسمى "Manus Clone". 
       مهمتك هي تنفيذ طلبات المستخدم بدقة واستقلالية.
-      يمكنك استخدام الأدوات المتاحة لك للبحث، الحساب، قراءة الملفات، تحليل الفيديوهات، أو تصفح المواقع الإلكترونية وتنفيذ المهام عليها (مثل النقر، الكتابة، واستخراج البيانات).
-      لديك قدرات رؤية وتحليل وسائط فائقة (Multimodal)، بما في ذلك الصور والفيديوهات.
-      فكر خطوة بخطوة، وأجب دائماً باللغة العربية بشكل احترافي.`)
+      
+      قدراتك تشمل:
+      1. تصفح المواقع: استخدم أدوات browser_* للتفاعل مع الويب. ستقوم الأدوات تلقائياً بأخذ لقطات شاشة عند الضرورة.
+      2. تعديل الكود: يمكنك قراءة وكتابة الملفات وتنفيذ أوامر الشل داخل المجلد الحالي.
+      3. الموصلات: يمكنك إدارة وربط التطبيقات الخارجية.
+      
+      تعليمات هامة:
+      - فكر خطوة بخطوة قبل اتخاذ أي إجراء.
+      - أجب دائماً باللغة العربية بشكل احترافي وودود.
+      - إذا قمت باستخدام أداة متصفح وظهر لك رابط لقطة شاشة [SCREENSHOT_PATH:...], قم بتضمينه في ردك النهائي ليتمكن المستخدم من رؤيته.
+      - كن مبادراً في حل المشكلات ولا تتوقف عند أول خطأ يواجهك.`)
     );
   }
 
-  // إذا كان هناك مهمة جديدة، نضيفها
+  // إذا كان هناك مهمة جديدة، نضيفها كرسالة من المستخدم
   if (task) {
     let content = [{ type: "text", text: task }];
     
     if (file_url) {
       const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(file_url);
-      const isVideo = /\.(mp4|mov|avi|wmv|webm|flv)$/i.test(file_url);
-      
       if (isImage) {
         content.push({
           type: "image_url",
-          image_url: file_url,
+          image_url: { url: file_url },
         });
-      } else if (isVideo) {
-        content.push({
-          type: "media",
-          file_uri: file_url,
-          mime_type: "video/mp4"
-        });
-        content[0].text += `\n(يرجى تحليل الفيديو في الرابط: ${file_url})`;
       } else {
         content[0].text += `\n(ملاحظة: يوجد ملف مرتبط بهذا الطلب في الرابط: ${file_url})`;
       }
@@ -79,12 +85,31 @@ const callModel = async (state) => {
     inputMessages.push(new HumanMessage({ content }));
   }
 
-  const response = await model.invoke(inputMessages);
-  
-  return { 
-    messages: [response],
-    logs: [`الوكيل يفكر: ${response.content || "استدعاء أداة..."}`]
-  };
+  try {
+    const response = await model.invoke(inputMessages);
+    
+    // تسجيل التفكير في السجلات
+    let logMessage = "الوكيل يفكر...";
+    if (response.tool_calls && response.tool_calls.length > 0) {
+      logMessage = `جاري استخدام الأدوات: ${response.tool_calls.map(tc => tc.name).join(', ')}`;
+    } else if (response.content) {
+      logMessage = `تم توليد الرد النهائي.`;
+    }
+
+    return { 
+      messages: [response],
+      logs: [logMessage],
+      task: "" // مسح المهمة بعد إضافتها للمراسلات
+    };
+  } catch (error) {
+    console.error("خطأ في استدعاء النموذج:", error);
+    const errorResponse = new AIMessage({ content: `عذراً، واجهت خطأ أثناء معالجة طلبك: ${error.message}` });
+    return {
+      messages: [errorResponse],
+      logs: ["فشل استدعاء النموذج"],
+      task: ""
+    };
+  }
 };
 
 // عقدة الأدوات (Tool Node)
